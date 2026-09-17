@@ -1376,6 +1376,9 @@ export async function syncPendingMutations(): Promise<{ syncedCount: number; err
         prescriptions: 'prescriptions',
         lab_orders: 'lab_orders',
         invoices: 'invoices',
+        appointments: 'appointments',
+        doctor_schedules: 'doctor_schedules',
+        medication_inventory: 'medication_inventory',
       };
 
       const table = tableMap[mutation.collection];

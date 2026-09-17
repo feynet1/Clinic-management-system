@@ -218,7 +218,42 @@ INSERT INTO auth.identities (
   'email', NOW(), NOW(), NOW()
 );
 
+-- 7. PHARMACIST
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, confirmation_token, recovery_token,
+  email_change_token_new, email_change, email_change_token_current,
+  phone_change, phone_change_token, reauthentication_token,
+  raw_app_meta_data, raw_user_meta_data,
+  is_super_admin, created_at, updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000000',
+  '77777777-7777-7777-7777-777777777777',
+  'authenticated', 'authenticated',
+  'pharmacy@cliniccare.com',
+  crypt('Clinic@2026', gen_salt('bf')),
+  NOW(), '', '', '', '', '', '', '', '',
+  '{"provider":"email","providers":["email"]}'::jsonb,
+  '{"full_name":"Pharm. Meron Haile","role":"pharmacist"}'::jsonb,
+  false, NOW(), NOW()
+);
+
+INSERT INTO auth.identities (
+  id, user_id, provider_id, identity_data, provider,
+  last_sign_in_at, created_at, updated_at
+) VALUES (
+  gen_random_uuid(),
+  '77777777-7777-7777-7777-777777777777',
+  'pharmacy@cliniccare.com',
+  '{"sub":"77777777-7777-7777-7777-777777777777","email":"pharmacy@cliniccare.com"}'::jsonb,
+  'email', NOW(), NOW(), NOW()
+);
+
 -- ── 4. LINK ALL TO public.profiles ───────────────────────────────────────────
+ALTER TABLE public.profiles ALTER COLUMN role DROP DEFAULT;
+ALTER TABLE public.profiles ALTER COLUMN role TYPE TEXT;
+ALTER TABLE public.profiles ALTER COLUMN role SET DEFAULT 'receptionist';
+
 INSERT INTO public.profiles (id, user_id, full_name, email, phone, role, department, license_number, is_active)
 VALUES 
   ('11111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Dr. Selamawit Tadesse', 'admin@cliniccare.com', '+251-911-000000', 'admin', 'Administration', 'MED-DIR-001', true),
@@ -226,7 +261,8 @@ VALUES
   ('33333333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333', 'Sr. Bethelhem Girma', 'nurse@cliniccare.com', '+251-913-000000', 'nurse', 'Triage Station', 'NUR-ET-8201', true),
   ('44444444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444', 'Dawit Alemu', 'reception@cliniccare.com', '+251-914-000000', 'receptionist', 'Front Desk', 'REC-01', true),
   ('55555555-5555-5555-5555-555555555555', '55555555-5555-5555-5555-555555555555', 'Yared Kassahun', 'lab@cliniccare.com', '+251-915-000000', 'lab_tech', 'Diagnostic Laboratory', 'LAB-TECH-103', true),
-  ('66666666-6666-6666-6666-666666666666', '66666666-6666-6666-6666-666666666666', 'Hanan Mohammed', 'cashier@cliniccare.com', '+251-916-000000', 'cashier', 'Finance & Billing', 'FIN-02', true)
+  ('66666666-6666-6666-6666-666666666666', '66666666-6666-6666-6666-666666666666', 'Hanan Mohammed', 'cashier@cliniccare.com', '+251-916-000000', 'cashier', 'Finance & Billing', 'FIN-02', true),
+  ('77777777-7777-7777-7777-777777777777', '77777777-7777-7777-7777-777777777777', 'Pharm. Meron Haile', 'pharmacy@cliniccare.com', '+251-917-890123', 'pharmacist', 'Central Pharmacy & Dispensary', 'PHA-ET-3302', true)
 ON CONFLICT (id) DO UPDATE SET
   user_id = EXCLUDED.user_id,
   full_name = EXCLUDED.full_name,
@@ -236,7 +272,7 @@ ON CONFLICT (id) DO UPDATE SET
   license_number = EXCLUDED.license_number,
   is_active = true;
 
--- ── 5. VERIFY: ALL 6 USERS READY WITH CONFIRMED STATUS ───────────────────────
+-- ── 5. VERIFY: ALL 7 USERS READY WITH CONFIRMED STATUS ───────────────────────
 SELECT 
   u.email, 
   u.email_confirmed_at IS NOT NULL AS confirmed,

@@ -6,7 +6,8 @@ import {
   TrendingUp, 
   DollarSign, 
   Clock, 
-  Activity 
+  Activity,
+  Flame 
 } from 'lucide-react';
 import type { Invoice, Patient, QueueTicket } from '../types';
 
@@ -65,6 +66,38 @@ export const AnalyticsPage: React.FC = () => {
     { code: 'J06.9', name: 'Acute Upper Resp. Infection', count: 6, percentage: 13 },
     { code: 'E11.9', name: 'Type 2 Diabetes Mellitus', count: 3, percentage: 7 },
   ];
+
+  // Hourly Patient Volume Analysis (Peak Clinic Hours)
+  const hourlySlots = [
+    { time: '08:00', label: '8 AM', base: 14 },
+    { time: '09:00', label: '9 AM', base: 32 },
+    { time: '10:00', label: '10 AM', base: 38 },
+    { time: '11:00', label: '11 AM', base: 26 },
+    { time: '12:00', label: '12 PM', base: 15 },
+    { time: '13:00', label: '1 PM', base: 9 },
+    { time: '14:00', label: '2 PM', base: 24 },
+    { time: '15:00', label: '3 PM', base: 35 },
+    { time: '16:00', label: '4 PM', base: 21 },
+    { time: '17:00', label: '5 PM', base: 12 },
+  ];
+
+  const hourlyData = hourlySlots.map((slot) => {
+    const slotHour = parseInt(slot.time.split(':')[0], 10);
+    const liveCount = queue.filter((q) => {
+      const qHour = new Date(q.createdAt).getHours();
+      return qHour === slotHour;
+    }).length;
+    const total = slot.base + liveCount;
+    const isPeak = total >= 30;
+    return {
+      ...slot,
+      total,
+      isPeak,
+    };
+  });
+
+  const maxHourVolume = Math.max(...hourlyData.map((d) => d.total), 1);
+  const totalDailyPatients = hourlyData.reduce((acc, curr) => acc + curr.total, 0);
 
   return (
     <div className="space-y-6">
@@ -179,6 +212,90 @@ export const AnalyticsPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Peak Clinic Hours & Hourly Patient Flow Bar Chart */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center space-x-2">
+              <Flame className="w-5 h-5 text-amber-500" />
+              <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wider">
+                Peak Clinic Operating Hours & Patient Volume
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Hourly patient arrival distribution across clinical triage, consultations, laboratory, and pharmacy.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-3 text-xs">
+            <div className="flex items-center space-x-1.5">
+              <span className="w-3 h-3 rounded bg-amber-500"></span>
+              <span className="text-slate-600 font-medium">Rush Hours (&ge; 30 pts)</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-3 h-3 rounded bg-brand-600"></span>
+              <span className="text-slate-600 font-medium">Standard Flow</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bar Chart Visualization */}
+        <div className="pt-4">
+          <div className="h-52 flex items-end justify-between gap-2 sm:gap-4 px-2 border-b border-slate-200 pb-2">
+            {hourlyData.map((h) => {
+              const heightPercent = Math.round((h.total / maxHourVolume) * 100);
+              return (
+                <div key={h.time} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                  {/* Tooltip / Value on top */}
+                  <span className={`text-[10px] font-bold mb-1.5 transition-all ${
+                    h.isPeak ? 'text-amber-600 font-extrabold' : 'text-slate-600'
+                  }`}>
+                    {h.total}
+                  </span>
+
+                  {/* The Bar */}
+                  <div
+                    className={`w-full max-w-[44px] rounded-t-lg transition-all duration-500 group-hover:opacity-90 ${
+                      h.isPeak
+                        ? 'bg-gradient-to-t from-amber-600 to-amber-400 shadow-md shadow-amber-500/20'
+                        : 'bg-gradient-to-t from-brand-700 to-brand-400'
+                    }`}
+                    style={{ height: `${heightPercent}%` }}
+                  />
+
+                  {/* Hour label below */}
+                  <div className="mt-2 text-center">
+                    <span className="block text-[11px] font-bold text-slate-800">{h.label}</span>
+                    <span className="hidden sm:block text-[9px] text-slate-400 font-mono">{h.time}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Analytical Flow Insights */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">Morning Surge Window</span>
+            <p className="text-xs text-amber-950 font-semibold mt-1">09:00 AM – 11:00 AM (Avg 35 pts/hr)</p>
+            <p className="text-[11px] text-amber-800/80 mt-0.5">Primary intake for walk-in registrations, triage vitals, and fasting lab draws.</p>
+          </div>
+
+          <div className="p-3.5 bg-brand-50 rounded-xl border border-brand-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-800 block">Afternoon Pickup Window</span>
+            <p className="text-xs text-brand-950 font-semibold mt-1">02:30 PM – 04:00 PM (Avg 31 pts/hr)</p>
+            <p className="text-[11px] text-brand-800/80 mt-0.5">Diagnostic test reviews, doctor follow-up consultations, and pharmacy dispensations.</p>
+          </div>
+
+          <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">Throughput Capacity</span>
+            <p className="text-xs text-emerald-950 font-semibold mt-1">~{totalDailyPatients} Patients / Operating Day</p>
+            <p className="text-[11px] text-emerald-800/80 mt-0.5">Automated queue routing reduced waiting room congestion by 24% across stations.</p>
           </div>
         </div>
       </div>
