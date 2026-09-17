@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { getInvoices, recordInvoicePayment } from '../services/dataService';
 import { ThermalReceipt } from '../components/print/ThermalReceipt';
+import { FormalClaimInvoice } from '../components/print/FormalClaimInvoice';
 import { 
   Receipt, 
   Search, 
@@ -12,7 +13,8 @@ import {
   Printer, 
   CheckCircle2, 
   Clock, 
-  X 
+  X,
+  FileText
 } from 'lucide-react';
 import type { Invoice, PaymentMethod } from '../types';
 
@@ -22,6 +24,7 @@ export const CashierPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [printInvoice, setPrintInvoice] = useState<Invoice | null>(null);
+  const [claimInvoice, setClaimInvoice] = useState<Invoice | null>(null);
 
   // Payment dialog state
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('telebirr');
@@ -182,20 +185,40 @@ export const CashierPage: React.FC = () => {
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center space-x-2">
                           {!isPaid ? (
-                            <button
-                              onClick={() => openPaymentModal(inv)}
-                              className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold shadow-xs cursor-pointer transition-colors"
-                            >
-                              Collect Payment
-                            </button>
+                            <div className="flex items-center space-x-1.5">
+                              <button
+                                onClick={() => openPaymentModal(inv)}
+                                className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold shadow-xs cursor-pointer transition-colors"
+                              >
+                                Collect Payment
+                              </button>
+                              <button
+                                onClick={() => setClaimInvoice(inv)}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer transition-colors"
+                                title="Preview A4 Claim Invoice"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           ) : (
-                            <button
-                              onClick={() => setPrintInvoice(inv)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-semibold flex items-center space-x-1.5 cursor-pointer transition-colors"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                              <span>{t.billing.thermalReceipt}</span>
-                            </button>
+                            <div className="flex items-center space-x-1.5">
+                              <button
+                                onClick={() => setPrintInvoice(inv)}
+                                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-semibold flex items-center space-x-1 cursor-pointer transition-colors"
+                                title="Print 80mm Thermal POS Receipt"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                                <span>{t.billing.thermalReceipt}</span>
+                              </button>
+                              <button
+                                onClick={() => setClaimInvoice(inv)}
+                                className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg font-semibold flex items-center space-x-1 cursor-pointer transition-colors"
+                                title="Print Formal A4 Medical Claim Invoice"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span>A4 Claim</span>
+                              </button>
+                            </div>
                           )}
                         </div>
                       </td>
@@ -372,6 +395,14 @@ export const CashierPage: React.FC = () => {
         <ThermalReceipt
           invoice={printInvoice}
           onClose={() => setPrintInvoice(null)}
+        />
+      )}
+
+      {/* Formal A4 Medical Claim Invoice Modal */}
+      {claimInvoice && (
+        <FormalClaimInvoice
+          invoice={claimInvoice}
+          onClose={() => setClaimInvoice(null)}
         />
       )}
     </div>

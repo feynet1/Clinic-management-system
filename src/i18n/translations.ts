@@ -11,17 +11,40 @@ export interface TranslationDictionary {
     lab_tech: string;
     cashier: string;
     monitor: string;
+    pharmacist: string;
   };
   nav: {
     dashboard: string;
     patients: string;
+    appointments: string;
     triage: string;
     doctorDesk: string;
     labPortal: string;
+    pharmacy: string;
     billing: string;
     queueMonitor: string;
     analytics: string;
   };
+  pharmacy: {
+    title: string;
+    pendingPrescriptions: string;
+    dispensedPrescriptions: string;
+    dispense: string;
+    dispensedSuccess: string;
+    batchNumber: string;
+    pharmacistNotes: string;
+    allergyWarning: string;
+    medicationInventory: string;
+    inStock: string;
+    lowStock: string;
+    unitPrice: string;
+    reorderLevel: string;
+    expiryDate: string;
+    manufacturer: string;
+    printLabel: string;
+    dosageInstructions: string;
+  };
+
   common: {
     search: string;
     save: string;
@@ -145,17 +168,21 @@ export const translations: Record<Language, TranslationDictionary> = {
       lab_tech: 'Lab Technologist',
       cashier: 'Cashier & Billing',
       monitor: 'Waiting Room TV',
+      pharmacist: 'Pharmacist',
     },
     nav: {
       dashboard: 'Dashboard',
       patients: 'Patient Registry',
+      appointments: 'Appointments & Schedules',
       triage: 'Triage Desk',
       doctorDesk: 'Doctor Clinical Desk',
       labPortal: 'Laboratory',
+      pharmacy: 'Pharmacy Desk',
       billing: 'Cashier & Billing',
       queueMonitor: 'Waiting Room TV',
       analytics: 'Reports & Analytics',
     },
+
     common: {
       search: 'Search...',
       save: 'Save Record',
@@ -239,6 +266,25 @@ export const translations: Record<Language, TranslationDictionary> = {
       printReport: 'Print Official Lab Report',
       completedOrders: 'Completed Lab Tests',
     },
+    pharmacy: {
+      title: 'Hospital Central Pharmacy & Dispensary',
+      pendingPrescriptions: 'Pending E-Prescriptions',
+      dispensedPrescriptions: 'Dispensed Prescriptions History',
+      dispense: 'Dispense & Verify Medication',
+      dispensedSuccess: 'Medication successfully dispensed and stock deducted',
+      batchNumber: 'Dispensing Batch #',
+      pharmacistNotes: 'Pharmacist Counseling & Usage Advice',
+      allergyWarning: 'CRITICAL DRUG ALLERGY WARNING',
+      medicationInventory: 'Pharmaceutical Drug Inventory',
+      inStock: 'In Stock',
+      lowStock: 'LOW STOCK ALERT',
+      unitPrice: 'Unit Price (ETB)',
+      reorderLevel: 'Reorder Level',
+      expiryDate: 'Expiry Date',
+      manufacturer: 'Manufacturer',
+      printLabel: 'Print Medication Label & Guide',
+      dosageInstructions: 'Dispensing & Usage Instructions',
+    },
     billing: {
       title: 'Cashier Desk & Itemized Billing',
       invoiceNumber: 'Invoice #',
@@ -277,17 +323,21 @@ export const translations: Record<Language, TranslationDictionary> = {
       lab_tech: 'የላብራቶሪ ባለሙያ',
       cashier: 'ገንዘብ ተቀባይ / ሂሳብ',
       monitor: 'የተጠባባቂ ክፍል ቲቪ',
+      pharmacist: 'ፋርማሲስት',
     },
     nav: {
       dashboard: 'ዳሽቦርድ',
       patients: 'የታካሚዎች መዝገብ',
+      appointments: 'ቀጠሮዎች እና የፈረቃ ሰሌዳ',
       triage: 'የትሪያጅ ክፍል',
       doctorDesk: 'የሀኪም የህክምና ክፍል',
       labPortal: 'ላብራቶሪ',
+      pharmacy: 'ፋርማሲ እና መድኃኒት ማደያ',
       billing: 'ክፍያ እና ሂሳብ',
       queueMonitor: 'የተጠባባቂ ክፍል ቲቪ',
       analytics: 'ሪፖርቶች እና ትንታኔ',
     },
+
     common: {
       search: 'ፈልግ...',
       save: 'መዝግብ',
@@ -371,6 +421,25 @@ export const translations: Record<Language, TranslationDictionary> = {
       printReport: 'ይፋዊ የላብራቶሪ ውጤት አትም',
       completedOrders: 'የተጠናቀቁ ምርመራዎች',
     },
+    pharmacy: {
+      title: 'የሆስፒታል ማዕከላዊ ፋርማሲ እና መድኃኒት ማደያ',
+      pendingPrescriptions: 'የታዘዙ ያልተሰጡ መድኃኒቶች',
+      dispensedPrescriptions: 'የተሰጡ መድኃኒቶች ታሪክ',
+      dispense: 'መድኃኒቱን አረጋግጥና ስጥ',
+      dispensedSuccess: 'መድኃኒቱ በትክክል ተሰጥቷል ከመጋዘኑም ቀንሷል',
+      batchNumber: 'የባች ቁጥር (Batch #)',
+      pharmacistNotes: 'የፋርማሲስት የምክር ማስታወሻ',
+      allergyWarning: 'አስቸኳይ የመድኃኒት አለርጂ ማስጠንቀቂያ',
+      medicationInventory: 'የፋርማሲ መድኃኒቶች ክምችት',
+      inStock: 'በክምችት ላይ ያለ',
+      lowStock: 'ዝቅተኛ ክምችት ማስጠንቀቂያ',
+      unitPrice: 'ነጠላ ዋጋ (ብር)',
+      reorderLevel: 'የማዘዣ ወሰን',
+      expiryDate: 'የሚያበቃበት ቀን',
+      manufacturer: 'አምራች ድርጅት',
+      printLabel: 'የመድኃኒት አወሳሰድ መመሪያ አትም',
+      dosageInstructions: 'የአወሳሰድ መመሪያዎች',
+    },
     billing: {
       title: 'የገንዘብ ተቀባይ እና ሂሳብ ክፍል',
       invoiceNumber: 'የደረሰኝ ቁጥር #',
@@ -409,17 +478,21 @@ export const translations: Record<Language, TranslationDictionary> = {
       lab_tech: 'Ogeessa Laaboraatorii',
       cashier: 'Qabduu Maallaqaa / Kaffaltii',
       monitor: 'TV Kutaa Eeggannaa',
+      pharmacist: 'Ogeessa Qorichaa (Faarmasistii)',
     },
     nav: {
       dashboard: 'Daashboordii',
       patients: 'Galmee Dhukkubsattootaa',
+      appointments: 'Beellama & Sagantaa Doktoraa',
       triage: 'Kutaa Tiriyaajii',
       doctorDesk: 'Kutaa Qorannoo Doktoraa',
       labPortal: 'Laaboraatorii',
+      pharmacy: 'Faarmasii & Qoricha Kennuu',
       billing: 'Kaffaltii & Nagahee',
       queueMonitor: 'TV Kutaa Eeggannaa',
       analytics: 'Gabaasaalee & Xiinxala',
     },
+
     common: {
       search: 'Barbaadi...',
       save: 'Galmeessi',
@@ -502,6 +575,25 @@ export const translations: Record<Language, TranslationDictionary> = {
       abnormal: 'Idilee Kan Hin Taane',
       printReport: 'Gabaasa Laaboraatorii Maxxansi',
       completedOrders: 'Qorannoowwan Xumuraman',
+    },
+    pharmacy: {
+      title: 'Faarmasii Giddugaleessaa Hospitaalaa',
+      pendingPrescriptions: 'Ajaja Qorichaa Eeggataa Jiru',
+      dispensedPrescriptions: 'Seenaa Qoricha Kennamanii',
+      dispense: 'Qoricha Mirkaneessi & Kenni',
+      dispensedSuccess: 'Qorichi sirriitti kennameera kuusaa keessaa hirʼateera',
+      batchNumber: 'Lakkoofsa Baachii (Batch #)',
+      pharmacistNotes: 'Yaada fi Gorsa Faarmasistii',
+      allergyWarning: 'AKEEKKACHIISA GUDDAA ALARJII QORICHAA',
+      medicationInventory: 'Kuusaa Qorichaa Faarmasii',
+      inStock: 'Kuusaa Keessa Jira',
+      lowStock: 'AKEEKKACHIISA KUUSAA GAD-AANAA',
+      unitPrice: 'Gatii Tokkoo (Qarshii)',
+      reorderLevel: 'Hanga Dabaluuf Barbaachisu',
+      expiryDate: 'Guyyaa Itti Dhumu',
+      manufacturer: 'Dhaabbata Oomishe',
+      printLabel: 'Qajeelfama Fudhatinsa Qorichaa Maxxansi',
+      dosageInstructions: 'Qajeelfama Itti Fayyadama Qorichaa',
     },
     billing: {
       title: 'Kaffaltii fi Nagahee',

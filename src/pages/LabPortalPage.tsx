@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { getLabOrders, updateLabOrderStatus } from '../services/dataService';
 import { COMMON_LAB_CATALOG } from '../data/clinicalCatalog';
 import { LabReportPrint } from '../components/print/LabReportPrint';
+import { uploadMedicalDocument } from '../lib/storage';
 import { 
   FlaskConical, 
   Clock, 
@@ -11,7 +12,11 @@ import {
   FileText, 
   AlertTriangle, 
   ChevronRight, 
-  Save 
+  Save,
+  Paperclip,
+  Upload,
+  ExternalLink,
+  FileCheck
 } from 'lucide-react';
 import type { LabOrder, LabResultItem } from '../types';
 
@@ -22,6 +27,9 @@ export const LabPortalPage: React.FC = () => {
   const [printOrder, setPrintOrder] = useState<LabOrder | null>(null);
   const [resultsForm, setResultsForm] = useState<LabResultItem[]>([]);
   const [remarks, setRemarks] = useState('');
+  const [fileUrl, setFileUrl] = useState<string>('');
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string>('');
 
   const loadOrders = async () => {
     const list = await getLabOrders();
@@ -40,6 +48,8 @@ export const LabPortalPage: React.FC = () => {
   const handleSelectOrder = (order: LabOrder) => {
     setSelectedOrder(order);
     setRemarks(order.remarks || '');
+    setFileUrl(order.reportFileUrl || '');
+    setUploadSuccess('');
 
     // If order already has results, use them; otherwise pull default parameters from catalog
     if (order.results && order.results.length > 0) {
@@ -76,6 +86,26 @@ export const LabPortalPage: React.FC = () => {
     loadOrders();
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploading(true);
+    setUploadSuccess('');
+    try {
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const storagePath = `lab-attachments/${selectedOrder?.id || 'order'}_${Date.now()}_${sanitizedName}`;
+      const res = await uploadMedicalDocument(file, storagePath);
+      if (res.success && res.url) {
+        setFileUrl(res.url);
+        setUploadSuccess(file.name);
+      }
+    } catch (err: any) {
+      console.error('Failed to upload lab file:', err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSaveResults = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
@@ -84,6 +114,7 @@ export const LabPortalPage: React.FC = () => {
       technicianName: currentUser.fullName,
       results: resultsForm,
       remarks,
+      reportFileUrl: fileUrl || selectedOrder.reportFileUrl || undefined,
     });
 
     loadOrders();
@@ -94,6 +125,7 @@ export const LabPortalPage: React.FC = () => {
       technicianName: currentUser.fullName,
       results: resultsForm,
       remarks,
+      reportFileUrl: fileUrl || selectedOrder.reportFileUrl || undefined,
       completedAt: new Date().toISOString(),
     });
   };
@@ -274,6 +306,58 @@ export const LabPortalPage: React.FC = () => {
                     onChange={(e) => setRemarks(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   />
+                </div>
+
+                {/* Diagnostic File / Scan / Report Attachment */}
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-slate-700 flex items-center space-x-1.5">
+                      <Paperclip className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Attach Diagnostic Scan / Lab Document (PDF, Image, DICOM)</span>
+                    </label>
+                    {uploading && (
+                      <span className="text-[11px] font-semibold text-amber-600 flex items-center space-x-1">
+                        <Clock className="w-3 h-3 animate-spin" />
+                        <span>Uploading...</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <label className="flex items-center space-x-2 px-3 py-2 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 transition-colors shadow-xs">
+                      <Upload className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Choose File to Upload</span>
+                      <input
+                        type="file"
+                        onChange={handleFileUpload}
+                        accept=".pdf,.png,.jpg,.jpeg,.webp,.dcm"
+                        className="hidden"
+                      />
+                    </label>
+
+                    {(fileUrl || uploadSuccess) && (
+                      <div className="flex items-center space-x-2 text-[11px]">
+                        <span className="inline-flex items-center text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 font-medium">
+                          <FileCheck className="w-3.5 h-3.5 mr-1" />
+                          <span>{uploadSuccess || 'Document attached'}</span>
+                        </span>
+                        {fileUrl && (
+                          <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center text-amber-700 hover:text-amber-800 font-semibold underline"
+                          >
+                            <ExternalLink className="w-3 h-3 mr-0.5" />
+                            View File
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    File will be securely archived into storage bucket and permanently linked to this diagnostic order.
+                  </p>
                 </div>
 
                 {/* Submit Action */}

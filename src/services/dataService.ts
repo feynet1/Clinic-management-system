@@ -13,7 +13,12 @@ import type {
   QueueStatus,
   TriagePriority,
   LabOrderStatus,
+  Appointment,
+  AppointmentStatus,
+  DoctorSchedule,
+  MedicationInventoryItem,
 } from '../types';
+import { COMMON_MEDICATION_INVENTORY } from '../data/clinicalCatalog';
 
 // =============================================================================
 // Helper: UUID v4 Generator (Compliant with PostgreSQL UUID type)
@@ -188,6 +193,78 @@ export function invoiceToDb(inv: Invoice) {
     updated_at: inv.createdAt,
   };
 }
+
+export function appointmentToDb(a: Appointment) {
+  return {
+    id: a.id,
+    appointment_number: a.appointmentNumber,
+    patient_id: a.patientId,
+    doctor_id: a.doctorId,
+    appointment_date: a.appointmentDate,
+    start_time: a.startTime,
+    end_time: a.endTime,
+    reason: a.reasonForVisit,
+    status: a.status,
+    notes: a.notes || null,
+    created_at: a.createdAt,
+    updated_at: a.updatedAt || a.createdAt,
+  };
+}
+
+export function dbToAppointment(row: any): Appointment {
+  return {
+    id: row.id,
+    appointmentNumber: row.appointment_number || `APT-${row.id.slice(0, 8)}`,
+    patientId: row.patient_id,
+    patientName: row.patient_name || row.patient?.full_name || 'Patient',
+    patientMrn: row.patient_mrn || row.patient?.mrn || '',
+    patientPhone: row.patient_phone || row.patient?.phone || '',
+    doctorId: row.doctor_id,
+    doctorName: row.doctor_name || row.doctor?.full_name || 'Doctor',
+    department: row.department || 'General Outpatient',
+    appointmentDate: row.appointment_date,
+    startTime: row.start_time?.slice(0, 5) || '09:00',
+    endTime: row.end_time?.slice(0, 5) || '09:30',
+    reasonForVisit: row.reason || row.reason_for_visit || 'General Consultation',
+    status: row.status || 'scheduled',
+    notes: row.notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function scheduleToDb(s: DoctorSchedule) {
+  return {
+    id: s.id,
+    doctor_id: s.doctorId,
+    day_of_week: s.dayOfWeek,
+    start_time: s.startTime,
+    end_time: s.endTime,
+    slot_duration_minutes: s.slotDurationMinutes,
+    max_patients_per_slot: s.maxPatientsPerSlot,
+    room_number: s.roomNumber,
+    is_active: s.isActive,
+  };
+}
+
+export function dbToSchedule(row: any): DoctorSchedule {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return {
+    id: row.id,
+    doctorId: row.doctor_id,
+    doctorName: row.doctor_name || row.doctor?.full_name || 'Doctor',
+    department: row.department || 'General Outpatient',
+    dayOfWeek: row.day_of_week,
+    dayName: days[row.day_of_week % 7] || 'Weekday',
+    startTime: row.start_time?.slice(0, 5) || '08:00',
+    endTime: row.end_time?.slice(0, 5) || '14:00',
+    slotDurationMinutes: row.slot_duration_minutes || 20,
+    maxPatientsPerSlot: row.max_patients_per_slot || 1,
+    roomNumber: row.room_number || 'Room 1',
+    isActive: row.is_active ?? true,
+  };
+}
+
 
 // =============================================================================
 // Seed Initial Data into IndexedDB if empty
@@ -414,7 +491,174 @@ export async function initializeDatabaseSeed(): Promise<void> {
   };
 
   await offlineDb.invoices.bulkAdd([inv1]);
+
+  // 6. Initial Doctor Weekly Schedules (PDF Page 3)
+  const sched1: DoctorSchedule = {
+    id: 's1111111-1111-1111-1111-111111111111',
+    doctorId: '22222222-2222-2222-2222-222222222222',
+    doctorName: 'Dr. Henok Bekele',
+    department: 'General Outpatient & Internal Medicine',
+    dayOfWeek: 1, // Monday
+    dayName: 'Monday',
+    startTime: '08:30',
+    endTime: '13:00',
+    slotDurationMinutes: 20,
+    maxPatientsPerSlot: 1,
+    roomNumber: 'Room 2 (OPD)',
+    isActive: true,
+  };
+
+  const sched2: DoctorSchedule = {
+    id: 's2222222-2222-2222-2222-222222222222',
+    doctorId: '22222222-2222-2222-2222-222222222222',
+    doctorName: 'Dr. Henok Bekele',
+    department: 'General Outpatient & Internal Medicine',
+    dayOfWeek: 3, // Wednesday
+    dayName: 'Wednesday',
+    startTime: '08:30',
+    endTime: '13:00',
+    slotDurationMinutes: 20,
+    maxPatientsPerSlot: 1,
+    roomNumber: 'Room 2 (OPD)',
+    isActive: true,
+  };
+
+  const sched3: DoctorSchedule = {
+    id: 's3333333-3333-3333-3333-333333333333',
+    doctorId: '11111111-1111-1111-1111-111111111111',
+    doctorName: 'Dr. Selamawit Tadesse',
+    department: 'Clinical Administration & Executive Consultations',
+    dayOfWeek: 2, // Tuesday
+    dayName: 'Tuesday',
+    startTime: '09:00',
+    endTime: '14:00',
+    slotDurationMinutes: 30,
+    maxPatientsPerSlot: 1,
+    roomNumber: 'Room 1 (Executive)',
+    isActive: true,
+  };
+
+  await offlineDb.doctorSchedules.bulkAdd([sched1, sched2, sched3]);
+
+  // 7. Initial Advance Appointments (PDF Page 3)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+  const apt1: Appointment = {
+    id: 'a1111111-1111-1111-1111-111111111111',
+    appointmentNumber: 'APT-2026-00101',
+    patientId: p2.id,
+    patientName: p2.fullName,
+    patientMrn: p2.mrn,
+    patientPhone: p2.phone,
+    doctorId: '22222222-2222-2222-2222-222222222222',
+    doctorName: 'Dr. Henok Bekele',
+    department: 'General Outpatient',
+    appointmentDate: todayStr,
+    startTime: '10:00',
+    endTime: '10:20',
+    reasonForVisit: 'Follow-up consultation for prenatal check & routine screening',
+    status: 'confirmed',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  };
+
+  const apt2: Appointment = {
+    id: 'a2222222-2222-2222-2222-222222222222',
+    appointmentNumber: 'APT-2026-00102',
+    patientId: p3.id,
+    patientName: p3.fullName,
+    patientMrn: p3.mrn,
+    patientPhone: p3.phone,
+    doctorId: '22222222-2222-2222-2222-222222222222',
+    doctorName: 'Dr. Henok Bekele',
+    department: 'General Outpatient',
+    appointmentDate: tomorrow,
+    startTime: '11:00',
+    endTime: '11:20',
+    reasonForVisit: 'Diabetes mellitus routine fasting blood glucose review',
+    status: 'scheduled',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  };
+
+  await offlineDb.appointments.bulkAdd([apt1, apt2]);
+
+  // 8. Initial Pharmaceutical Drug Inventory (PDF Page 4)
+  const medCount = await offlineDb.medicationInventory.count();
+  if (medCount === 0) {
+    await offlineDb.medicationInventory.bulkAdd(COMMON_MEDICATION_INVENTORY);
+  }
+
+  // 9. Initial Prescriptions for Pharmacy Desk Handoff
+  const rxCount = await offlineDb.prescriptions.count();
+  if (rxCount === 0) {
+    const rx1: Prescription = {
+      id: 'r1111111-1111-1111-1111-111111111111',
+      patientId: p1.id,
+      patientName: p1.fullName,
+      patientMrn: p1.mrn,
+      patientAllergies: p1.allergies,
+      doctorId: '22222222-2222-2222-2222-222222222222',
+      doctorName: 'Dr. Henok Bekele',
+      status: 'prescribed',
+      notes: 'Prescribed following malaria positive RDT confirmation. Complete full course.',
+      items: [
+        {
+          id: 'rx-i1',
+          drugName: 'Coartem (Artemether 20mg + Lumefantrine 120mg)',
+          dosage: '4 tablets stat, then 4 tablets at 8h, then BID for 2 days',
+          route: 'Oral',
+          frequency: 'BID (Twice daily)',
+          duration: '3 days',
+          instructions: 'Take with fatty meal or milk to improve oral bioavailability.',
+          quantity: 24,
+        },
+        {
+          id: 'rx-i2',
+          drugName: 'Paracetamol 500mg',
+          dosage: '1000mg (2 tabs)',
+          route: 'Oral',
+          frequency: 'TID (3x daily)',
+          duration: '3 days',
+          instructions: 'Take after meals for fever relief. Max 4000mg/24h.',
+          quantity: 18,
+        },
+      ],
+      createdAt: new Date().toISOString(),
+    };
+
+    const rx2: Prescription = {
+      id: 'r2222222-2222-2222-2222-222222222222',
+      patientId: p2.id,
+      patientName: p2.fullName,
+      patientMrn: p2.mrn,
+      patientAllergies: p2.allergies,
+      doctorId: '22222222-2222-2222-2222-222222222222',
+      doctorName: 'Dr. Henok Bekele',
+      status: 'dispensed',
+      notes: 'Prenatal care and bacterial prophylaxis.',
+      dispensedAt: new Date(Date.now() - 3600000).toISOString(),
+      dispensedBy: 'Pharm. Meron Haile',
+      pharmacistNotes: 'Counselled on compliance and taking with plenty of water.',
+      batchNumberUsed: 'ETH-AMX-2025-08',
+      items: [
+        {
+          id: 'rx-i3',
+          drugName: 'Amoxicillin Trihydrate 500mg',
+          dosage: '500mg',
+          route: 'Oral',
+          frequency: 'TID (3x daily)',
+          duration: '7 days',
+          instructions: 'Complete full 7-day course even if symptoms resolve.',
+          quantity: 21,
+        },
+      ],
+      createdAt: new Date(Date.now() - 7200000).toISOString(),
+    };
+
+    await offlineDb.prescriptions.bulkAdd([rx1, rx2]);
+  }
 }
+
 
 // =============================================================================
 // Helper: Record Offline Mutation for Syncing
@@ -768,6 +1012,40 @@ export async function savePrescription(
   return record;
 }
 
+export async function updatePrescriptionStatus(
+  prescriptionId: string,
+  status: 'prescribed' | 'sent_to_pharmacy' | 'dispensed',
+  details?: {
+    dispensedBy?: string;
+    pharmacistNotes?: string;
+    batchNumberUsed?: string;
+  }
+): Promise<void> {
+  const patch: Partial<Prescription> = {
+    status,
+    ...details,
+  };
+  if (status === 'dispensed') {
+    patch.dispensedAt = new Date().toISOString();
+  }
+
+  await offlineDb.prescriptions.update(prescriptionId, patch);
+  await recordPendingMutation('prescriptions', 'update', { id: prescriptionId, ...patch });
+}
+
+export async function getMedicationInventory(): Promise<MedicationInventoryItem[]> {
+  await initializeDatabaseSeed();
+  return offlineDb.medicationInventory.toArray();
+}
+
+export async function deductMedicationStock(medicationId: string, quantityToDeduct: number): Promise<void> {
+  const item = await offlineDb.medicationInventory.get(medicationId);
+  if (item) {
+    const updatedQty = Math.max(0, item.stockQuantity - quantityToDeduct);
+    await offlineDb.medicationInventory.update(medicationId, { stockQuantity: updatedQty });
+  }
+}
+
 // =============================================================================
 // Diagnostic Lab Orders & Results Service
 // =============================================================================
@@ -822,6 +1100,9 @@ export async function updateLabOrderStatus(
     collected_at: patch.collectedAt || null,
     completed_at: patch.completedAt || null,
   };
+  if (patch.reportFileUrl) {
+    dbUpdate.report_file_url = patch.reportFileUrl;
+  }
 
   if (isSupabaseConfigured && supabase && navigator.onLine) {
     try {
@@ -926,6 +1207,147 @@ export async function recordInvoicePayment(
     await updateQueueStatus(ticket.id, 'completed');
   }
 }
+
+// =============================================================================
+// Doctor Schedules & Appointment Booking Service (PDF Page 3)
+// =============================================================================
+
+export async function getAppointments(): Promise<Appointment[]> {
+  try {
+    const list = await offlineDb.appointments.toArray();
+    return list.sort((a, b) => {
+      const dateDiff = a.appointmentDate.localeCompare(b.appointmentDate);
+      if (dateDiff !== 0) return dateDiff;
+      return a.startTime.localeCompare(b.startTime);
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function createAppointment(
+  data: Omit<Appointment, 'id' | 'appointmentNumber' | 'createdAt'>
+): Promise<Appointment> {
+  const id = generateUuid();
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const year = new Date().getFullYear();
+  const appointmentNumber = `APT-${year}-${randomSuffix}`;
+
+  const record: Appointment = {
+    ...data,
+    id,
+    appointmentNumber,
+    createdAt: new Date().toISOString(),
+  };
+
+  await offlineDb.appointments.add(record);
+
+  const dbPayload = appointmentToDb(record);
+  if (isSupabaseConfigured && supabase && navigator.onLine) {
+    try {
+      await supabase.from('appointments').insert(dbPayload);
+    } catch {
+      await recordPendingMutation('appointments', 'create', dbPayload);
+    }
+  } else {
+    await recordPendingMutation('appointments', 'create', dbPayload);
+  }
+
+  return record;
+}
+
+export async function updateAppointmentStatus(
+  id: string,
+  status: AppointmentStatus,
+  ticketId?: string
+): Promise<void> {
+  const patch: Partial<Appointment> = {
+    status,
+    ticketId: ticketId || undefined,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await offlineDb.appointments.update(id, patch);
+
+  const dbUpdate: any = {
+    status,
+    updated_at: patch.updatedAt,
+  };
+
+  if (isSupabaseConfigured && supabase && navigator.onLine) {
+    try {
+      await supabase.from('appointments').update(dbUpdate).eq('id', id);
+    } catch {
+      await recordPendingMutation('appointments', 'update', { id, ...dbUpdate });
+    }
+  } else {
+    await recordPendingMutation('appointments', 'update', { id, ...dbUpdate });
+  }
+}
+
+/**
+ * Check-In Appointment:
+ * Instantly creates a live queue ticket (e.g. Q-350) for the patient,
+ * advances the appointment status to 'checked_in', and plays a welcome chime!
+ */
+export async function checkInAppointment(appointmentId: string): Promise<QueueTicket> {
+  const apt = await offlineDb.appointments.get(appointmentId);
+  if (!apt) throw new Error('Appointment not found');
+
+  // Issue live queue ticket
+  const ticket = await createQueueTicket(
+    apt.patientId,
+    apt.patientName,
+    apt.patientMrn,
+    'normal',
+    apt.department || 'General Outpatient'
+  );
+
+  if (apt.doctorId || apt.doctorName) {
+    await offlineDb.queue.update(ticket.id, {
+      doctorId: apt.doctorId,
+      doctorName: apt.doctorName,
+    });
+  }
+
+  // Update appointment record
+  await updateAppointmentStatus(appointmentId, 'checked_in', ticket.id);
+
+  return ticket;
+}
+
+export async function getDoctorSchedules(): Promise<DoctorSchedule[]> {
+  try {
+    const list = await offlineDb.doctorSchedules.toArray();
+    return list.sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveDoctorSchedule(scheduleData: Omit<DoctorSchedule, 'id'> & { id?: string }): Promise<DoctorSchedule> {
+  const id = scheduleData.id || generateUuid();
+  const record: DoctorSchedule = {
+    ...scheduleData,
+    id,
+  };
+
+  await offlineDb.doctorSchedules.put(record);
+
+  const dbPayload = scheduleToDb(record);
+  if (isSupabaseConfigured && supabase && navigator.onLine) {
+    try {
+      await supabase.from('doctor_schedules').upsert(dbPayload);
+    } catch {
+      await recordPendingMutation('doctor_schedules', 'create', dbPayload);
+    }
+  } else {
+    await recordPendingMutation('doctor_schedules', 'create', dbPayload);
+  }
+
+  return record;
+}
+
 
 // =============================================================================
 // Offline Synchronization Manager

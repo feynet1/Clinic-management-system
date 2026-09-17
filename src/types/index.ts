@@ -2,7 +2,7 @@
 // Clinic Management System PWA - Domain Types & Interfaces
 // =============================================================================
 
-export type UserRole = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'lab_tech' | 'cashier';
+export type UserRole = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'lab_tech' | 'cashier' | 'pharmacist';
 
 export interface UserProfile {
   id: string;
@@ -138,7 +138,27 @@ export interface Prescription {
   items: PrescriptionItem[];
   status: 'prescribed' | 'sent_to_pharmacy' | 'dispensed';
   notes?: string;
+  dispensedAt?: string;
+  dispensedBy?: string;
+  pharmacistNotes?: string;
+  batchNumberUsed?: string;
   createdAt: string;
+}
+
+export interface MedicationInventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  genericName: string;
+  category: string;
+  dosageForm: string; // Tablet, Capsule, Syrup, Injection, Suspension
+  strength: string; // 500mg, 250mg/5ml
+  unitPriceEtb: number;
+  stockQuantity: number;
+  reorderLevel: number;
+  batchNumber: string;
+  expiryDate: string;
+  manufacturer: string;
 }
 
 export type LabOrderStatus = 'ordered' | 'sample_collected' | 'analyzing' | 'completed' | 'cancelled';
@@ -225,3 +245,48 @@ export interface LabTestCatalogItem {
     referenceRange: string;
   }[];
 }
+
+export type AppointmentStatus = 
+  | 'scheduled'
+  | 'confirmed'
+  | 'checked_in'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
+
+export interface Appointment {
+  id: string;
+  appointmentNumber: string; // e.g. APT-2026-00101
+  patientId: string;
+  patientName: string;
+  patientMrn: string;
+  patientPhone: string;
+  doctorId: string;
+  doctorName: string;
+  department: string;
+  appointmentDate: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
+  reasonForVisit: string;
+  status: AppointmentStatus;
+  ticketId?: string; // Links to live queue ticket when checked in
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface DoctorSchedule {
+  id: string;
+  doctorId: string;
+  doctorName: string;
+  department: string;
+  dayOfWeek: number; // 1 = Monday, 2 = Tuesday, ... 7 = Sunday
+  dayName: string;
+  startTime: string; // e.g. "08:00"
+  endTime: string; // e.g. "14:00"
+  slotDurationMinutes: number; // e.g. 20
+  maxPatientsPerSlot: number;
+  roomNumber: string;
+  isActive: boolean;
+}
+

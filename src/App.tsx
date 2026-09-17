@@ -10,6 +10,8 @@ import { TriagePage } from './pages/TriagePage';
 import { DoctorDeskPage } from './pages/DoctorDeskPage';
 import { LabPortalPage } from './pages/LabPortalPage';
 import { CashierPage } from './pages/CashierPage';
+import { AppointmentsPage } from './pages/AppointmentsPage';
+import { PharmacyPage } from './pages/PharmacyPage';
 import { QueueMonitorPage } from './pages/QueueMonitorPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { initializeDatabaseSeed } from './services/dataService';
@@ -183,9 +185,11 @@ const MainAppContent: React.FC = () => {
               }}
             />
           )}
+          {currentTab === 'appointments' && <AppointmentsPage />}
           {currentTab === 'triage' && <TriagePage />}
           {currentTab === 'doctor' && <DoctorDeskPage />}
           {currentTab === 'lab' && <LabPortalPage />}
+          {currentTab === 'pharmacy' && <PharmacyPage />}
           {currentTab === 'billing' && <CashierPage />}
           {currentTab === 'queue-tv' && <QueueMonitorPage />}
           {currentTab === 'analytics' && <AnalyticsPage />}

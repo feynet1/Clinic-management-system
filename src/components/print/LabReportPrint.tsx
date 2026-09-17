@@ -134,6 +134,13 @@ export const LabReportPrint: React.FC<LabReportPrintProps> = ({ order, onClose }
             </div>
           )}
 
+          {order.reportFileUrl && (
+            <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200 text-xs flex items-center justify-between">
+              <span className="font-semibold text-amber-900">📎 Attached Diagnostic Scan / Document:</span>
+              <span className="font-mono text-[10px] text-amber-800 break-all max-w-[65%] truncate">{order.reportFileUrl}</span>
+            </div>
+          )}
+
           {/* Footer & Signature */}
           <div className="pt-8 flex justify-between items-end border-t border-slate-200">
             <div className="text-[10px] text-slate-400">

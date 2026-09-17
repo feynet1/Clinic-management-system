@@ -3,15 +3,18 @@ import { useApp } from '../../context/AppContext';
 import {
   LayoutDashboard,
   Users,
+  Calendar,
   HeartHandshake,
   Stethoscope,
   FlaskConical,
+  Pill,
   Receipt,
   Tv,
   BarChart3,
   LogOut,
   User,
 } from 'lucide-react';
+
 
 interface SidebarProps {
   currentTab: string;
@@ -36,6 +39,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
       roles: ['admin', 'receptionist', 'nurse', 'doctor'],
     },
     {
+      id: 'appointments',
+      label: t.nav.appointments,
+      icon: <Calendar className="w-5 h-5" />,
+      roles: ['admin', 'receptionist', 'doctor', 'nurse'],
+    },
+    {
       id: 'triage',
       label: t.nav.triage,
       icon: <HeartHandshake className="w-5 h-5" />,
@@ -52,6 +61,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
       label: t.nav.labPortal,
       icon: <FlaskConical className="w-5 h-5" />,
       roles: ['admin', 'lab_tech', 'doctor'],
+    },
+    {
+      id: 'pharmacy',
+      label: t.nav.pharmacy,
+      icon: <Pill className="w-5 h-5" />,
+      roles: ['admin', 'pharmacist', 'doctor', 'nurse', 'cashier'],
     },
     {
       id: 'billing',

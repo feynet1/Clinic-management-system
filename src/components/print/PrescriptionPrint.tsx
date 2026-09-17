@@ -43,9 +43,9 @@ export const PrescriptionPrint: React.FC<PrescriptionPrintProps> = ({ prescripti
           {/* Clinic Header */}
           <div className="border-b-2 border-brand-700 pb-4 flex justify-between items-start">
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-brand-900">CLINICCARE HEALTH CENTER</h1>
-              <p className="text-xs text-slate-600">Outpatient Clinical & Diagnostic Services</p>
-              <p className="text-xs text-slate-500">Bole Subcity, Woreda 03, Addis Ababa, Ethiopia • Tel: +251 116 123 456</p>
+              <h1 className="text-xl font-bold tracking-tight text-brand-900">HARAMAYA UNIVERSITY REFERRAL HOSPITAL</h1>
+              <p className="text-xs font-semibold text-brand-700">Hiwot Fana Comprehensive Specialized Hospital • Central Pharmacy</p>
+              <p className="text-xs text-slate-500">Harar, Ethiopia • Emergency: (025) 666-0368 • Pharmacy Hotline: +251 915 046 933</p>
             </div>
             <div className="text-right text-xs">
               <span className="inline-block px-2.5 py-1 bg-brand-50 border border-brand-200 text-brand-700 font-bold rounded">
