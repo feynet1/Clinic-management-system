@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "serverUrl": "https://mcp.supabase.com/mcp?project_ref=bxvfhydahvyrtvpoczrw&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching"
+    },
+    "cloudflare": {
+      "command": "npx",
+      "args": ["-y", "@cloudflare/mcp-server-cloudflare"],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "REDACTED_CLOUDFLARE_TOKEN",
+        "CLOUDFLARE_ACCOUNT_ID": "19269210cda0919e31632969e37f29c0"
+      }
+    }
+  }
+}

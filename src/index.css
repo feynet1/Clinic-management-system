@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Print Stylesheet for Official Healthcare Documents & Thermal POS Receipts */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-container,
+  .print-container * {
+    visibility: visible;
+  }
+
+  .print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  /* 80mm Thermal Receipt Spec */
+  .thermal-receipt-print {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    padding: 8px !important;
+    margin: 0 auto !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    color: #000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
