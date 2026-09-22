@@ -16,7 +16,8 @@ import {
   ShieldAlert,
   LogOut,
   User2,
-  Home
+  Home,
+  Pill
 } from 'lucide-react';
 import type { Language } from '../../i18n/translations';
 import type { UserRole } from '../../types';
@@ -46,6 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
     { role: 'nurse', label: t.roles.nurse, icon: <HeartHandshake className="w-4 h-4 text-rose-600" /> },
     { role: 'receptionist', label: t.roles.receptionist, icon: <UserPlus className="w-4 h-4 text-blue-600" /> },
     { role: 'lab_tech', label: t.roles.lab_tech, icon: <FlaskConical className="w-4 h-4 text-amber-600" /> },
+    { role: 'pharmacist', label: t.roles.pharmacist, icon: <Pill className="w-4 h-4 text-teal-600" /> },
     { role: 'cashier', label: t.roles.cashier, icon: <Receipt className="w-4 h-4 text-purple-600" /> },
     { role: 'admin', label: t.roles.admin, icon: <ShieldAlert className="w-4 h-4 text-slate-800" /> },
     { role: 'monitor', label: t.roles.monitor, icon: <Tv className="w-4 h-4 text-sky-600" /> },

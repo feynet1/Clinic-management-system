@@ -12,8 +12,10 @@ import {
   Heart, 
   Ticket, 
   Check, 
-  X 
+  X,
+  FileText
 } from 'lucide-react';
+import { PatientHistoryDrawer } from '../components/patient/PatientHistoryDrawer';
 import type { Patient } from '../types';
 
 interface PatientsPageProps {
@@ -35,7 +37,7 @@ export const PatientsPage: React.FC<PatientsPageProps> = ({ onNavigateToTriage }
     gender: 'Male' as 'Male' | 'Female' | 'Other',
     age: 30,
     phone: '+251-9',
-    address: 'Addis Ababa',
+    address: 'Harar',
     kebele: '',
     woreda: '',
     bloodType: 'O+' as any,
@@ -226,17 +228,27 @@ export const PatientsPage: React.FC<PatientsPageProps> = ({ onNavigateToTriage }
                 {/* Card Actions */}
                 <div className="pt-3 border-t border-slate-100 flex items-center space-x-2">
                   <button
+                    onClick={() => setSelectedPatient(patient)}
+                    className="flex-1 py-2 px-3 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+                    title="View Complete Longitudinal Medical History"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Medical Record</span>
+                  </button>
+
+                  <button
                     onClick={() => handleIssueQueueTicket(patient)}
-                    className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
+                    className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
+                    title="Issue Walk-in Queue Ticket"
                   >
                     <Ticket className="w-3.5 h-3.5 text-slate-600" />
-                    <span>Issue Ticket</span>
+                    <span className="hidden sm:inline">Ticket</span>
                   </button>
 
                   {onNavigateToTriage && (
                     <button
                       onClick={() => onNavigateToTriage(patient.id)}
-                      className="py-2 px-3 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                     >
                       Triage
                     </button>
@@ -410,6 +422,16 @@ export const PatientsPage: React.FC<PatientsPageProps> = ({ onNavigateToTriage }
           </div>
         </div>
       )}
+
+      {/* Patient Longitudinal Medical Record Drawer */}
+      <PatientHistoryDrawer
+        patient={selectedPatient}
+        isOpen={Boolean(selectedPatient)}
+        onClose={() => setSelectedPatient(null)}
+        onTicketIssued={(ticketNum) => {
+          setTicketIssuedSuccess(`Ticket ${ticketNum} successfully issued for ${selectedPatient?.fullName}`);
+        }}
+      />
     </div>
   );
 };

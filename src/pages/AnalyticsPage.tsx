@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { getInvoices, getPatients, getQueueTickets } from '../services/dataService';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  DollarSign, 
-  Clock, 
+import {
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  Clock,
   Activity,
-  Flame 
+  Flame,
+  FileDown,
 } from 'lucide-react';
 import type { Invoice, Patient, QueueTicket } from '../types';
+import { ClinicalReportPrint } from '../components/print/ClinicalReportPrint';
 
 export const AnalyticsPage: React.FC = () => {
   const { t } = useApp();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [queue, setQueue] = useState<QueueTicket[]>([]);
+  const [showReport, setShowReport] = useState<boolean>(false);
 
   useEffect(() => {
     Promise.all([getInvoices(), getPatients(), getQueueTickets()]).then(([invs, pts, q]) => {
@@ -26,7 +29,7 @@ export const AnalyticsPage: React.FC = () => {
   }, []);
 
   // Compute Revenue by Service Category
-  const revenueByCategory: Record<string, number> = {
+  const revenueByCategory = {
     Consultation: 0,
     Laboratory: 0,
     Pharmacy: 0,
@@ -43,7 +46,7 @@ export const AnalyticsPage: React.FC = () => {
   const totalRevenue = Object.values(revenueByCategory).reduce((a, b) => a + b, 0);
 
   // Compute Revenue by Payment Method
-  const revenueByMethod: Record<string, number> = {
+  const revenueByMethod = {
     Cash: 0,
     Telebirr: 0,
     'CBE Birr': 0,
@@ -89,27 +92,36 @@ export const AnalyticsPage: React.FC = () => {
     }).length;
     const total = slot.base + liveCount;
     const isPeak = total >= 30;
-    return {
-      ...slot,
-      total,
-      isPeak,
-    };
+    return { ...slot, total, isPeak };
   });
 
   const maxHourVolume = Math.max(...hourlyData.map((d) => d.total), 1);
   const totalDailyPatients = hourlyData.reduce((acc, curr) => acc + curr.total, 0);
 
+  const reportMonth = new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center space-x-2">
-          <BarChart3 className="w-6 h-6 text-brand-600" />
-          <h1 className="text-xl font-bold text-slate-900">{t.nav.analytics}</h1>
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2">
+            <BarChart3 className="w-6 h-6 text-brand-600" />
+            <h1 className="text-xl font-bold text-slate-900">{t.nav.analytics}</h1>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Executive financial summaries, patient flow throughput, and disease distribution.
+          </p>
         </div>
-        <p className="text-xs text-slate-500 mt-1">
-          Executive financial summaries, patient flow throughput, and disease distribution.
-        </p>
+
+        {/* 🆕 Export Report Button */}
+        <button
+          onClick={() => setShowReport(true)}
+          className="flex items-center space-x-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-sm hover:shadow transition-all cursor-pointer shrink-0"
+        >
+          <FileDown className="w-4 h-4" />
+          <span>Export Monthly Report</span>
+        </button>
       </div>
 
       {/* Top High-Level Metrics */}
@@ -299,6 +311,34 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 🆕 Report Period Badge at Bottom */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between text-xs text-slate-500">
+        <span>Showing analytics for all recorded data • Report period: <strong className="text-slate-700">{reportMonth}</strong></span>
+        <button
+          onClick={() => setShowReport(true)}
+          className="flex items-center space-x-1.5 text-brand-600 hover:text-brand-800 font-semibold transition-colors cursor-pointer"
+        >
+          <FileDown className="w-3.5 h-3.5" />
+          <span>Generate PDF Report</span>
+        </button>
+      </div>
+
+      {/* 🆕 Clinical Report Print Modal */}
+      {showReport && (
+        <ClinicalReportPrint
+          invoices={invoices}
+          patients={patients}
+          queue={queue}
+          revenueByCategory={revenueByCategory}
+          revenueByMethod={revenueByMethod}
+          topDiagnoses={topDiagnoses}
+          hourlyData={hourlyData}
+          totalRevenue={totalRevenue}
+          totalDailyPatients={totalDailyPatients}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 };

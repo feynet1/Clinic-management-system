@@ -144,10 +144,40 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigate
             </button>
           </form>
 
+          {/* Quick Demo Staff Logins */}
+          <div className="mt-6 pt-5 border-t border-slate-100">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 text-center">
+              Quick Demo Staff Access (1-Click Fill)
+            </p>
+            <div className="flex flex-wrap gap-1.5 justify-center">
+              {[
+                { label: 'Doctor', email: 'doctor@cliniccare.com' },
+                { label: 'Nurse', email: 'nurse@cliniccare.com' },
+                { label: 'Reception', email: 'reception@cliniccare.com' },
+                { label: 'Pharmacist', email: 'pharmacy@cliniccare.com' },
+                { label: 'Lab Tech', email: 'lab@cliniccare.com' },
+                { label: 'Cashier', email: 'cashier@cliniccare.com' },
+                { label: 'Admin', email: 'admin@cliniccare.com' },
+              ].map((role) => (
+                <button
+                  key={role.email}
+                  type="button"
+                  onClick={() => {
+                    setEmail(role.email);
+                    setPassword('Clinic@2026');
+                  }}
+                  className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 rounded-lg text-slate-600 transition-colors cursor-pointer"
+                >
+                  {role.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Subtle Clinic ID footer */}
-          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
             <p className="text-[11px] text-slate-400">
-              ClinicCare PWA • Secure Staff Authentication
+              Haramaya University Hiwot Fana Comprehensive Specialized Hospital
             </p>
           </div>
         </div>

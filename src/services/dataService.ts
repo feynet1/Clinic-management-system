@@ -713,6 +713,40 @@ export async function getPatientById(id: string): Promise<Patient | undefined> {
   return offlineDb.patients.get(id);
 }
 
+export interface PatientCompleteRecord {
+  patient: Patient;
+  vitals: TriageVitals[];
+  consultations: Consultation[];
+  prescriptions: Prescription[];
+  labOrders: LabOrder[];
+  invoices: Invoice[];
+  appointments: Appointment[];
+}
+
+export async function getPatientCompleteRecord(patientId: string): Promise<PatientCompleteRecord | null> {
+  const patient = await offlineDb.patients.get(patientId);
+  if (!patient) return null;
+
+  const [vitals, consultations, prescriptions, labOrders, invoices, appointments] = await Promise.all([
+    offlineDb.triage.where('patientId').equals(patientId).reverse().sortBy('createdAt'),
+    offlineDb.consultations.where('patientId').equals(patientId).reverse().sortBy('createdAt'),
+    offlineDb.prescriptions.where('patientId').equals(patientId).reverse().sortBy('createdAt'),
+    offlineDb.labOrders.where('patientId').equals(patientId).reverse().sortBy('orderedAt'),
+    offlineDb.invoices.where('patientId').equals(patientId).reverse().sortBy('createdAt'),
+    offlineDb.appointments.where('patientId').equals(patientId).reverse().sortBy('appointmentDate'),
+  ]);
+
+  return {
+    patient,
+    vitals,
+    consultations,
+    prescriptions,
+    labOrders,
+    invoices,
+    appointments,
+  };
+}
+
 export interface RegisterPatientResult {
   patient: Patient;
   syncedToCloud: boolean;
@@ -1043,6 +1077,59 @@ export async function deductMedicationStock(medicationId: string, quantityToDedu
   if (item) {
     const updatedQty = Math.max(0, item.stockQuantity - quantityToDeduct);
     await offlineDb.medicationInventory.update(medicationId, { stockQuantity: updatedQty });
+    const dbUpdate = { stock_quantity: updatedQty };
+    if (isSupabaseConfigured && supabase && navigator.onLine) {
+      try {
+        await supabase.from('medication_inventory').update(dbUpdate).eq('id', medicationId);
+      } catch {
+        await recordPendingMutation('medication_inventory', 'update', { id: medicationId, ...dbUpdate });
+      }
+    } else {
+      await recordPendingMutation('medication_inventory', 'update', { id: medicationId, ...dbUpdate });
+    }
+  }
+}
+
+/**
+ * Restock / Add New Batch:
+ * Increases the stock quantity of a medication, updates the batch number,
+ * expiry date, and supplier info. Syncs to Supabase if online.
+ */
+export async function addMedicationStock(
+  medicationId: string,
+  quantityToAdd: number,
+  newBatchNumber?: string,
+  newExpiryDate?: string,
+  supplierName?: string
+): Promise<void> {
+  const item = await offlineDb.medicationInventory.get(medicationId);
+  if (!item) return;
+
+  const updatedQty = item.stockQuantity + quantityToAdd;
+  const patch: Partial<MedicationInventoryItem> = {
+    stockQuantity: updatedQty,
+    ...(newBatchNumber ? { batchNumber: newBatchNumber } : {}),
+    ...(newExpiryDate ? { expiryDate: newExpiryDate } : {}),
+    ...(supplierName ? { manufacturer: supplierName } : {}),
+  };
+
+  await offlineDb.medicationInventory.update(medicationId, patch);
+
+  const dbUpdate: any = {
+    stock_quantity: updatedQty,
+    ...(newBatchNumber ? { batch_number: newBatchNumber } : {}),
+    ...(newExpiryDate ? { expiry_date: newExpiryDate } : {}),
+    ...(supplierName ? { manufacturer: supplierName } : {}),
+  };
+
+  if (isSupabaseConfigured && supabase && navigator.onLine) {
+    try {
+      await supabase.from('medication_inventory').update(dbUpdate).eq('id', medicationId);
+    } catch {
+      await recordPendingMutation('medication_inventory', 'update', { id: medicationId, ...dbUpdate });
+    }
+  } else {
+    await recordPendingMutation('medication_inventory', 'update', { id: medicationId, ...dbUpdate });
   }
 }
 
