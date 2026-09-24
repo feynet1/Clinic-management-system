@@ -1,0 +1,7 @@
+.env
+.env.*
+!.env.example
+
+# Local MCP configuration may contain credentials.
+.mcp.local.json
+.agents/mcp_config.local.json
