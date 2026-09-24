@@ -987,6 +987,10 @@ export async function updateQueueStatus(
 // Doctor EHR Consultation & SOAP Notes Service
 // =============================================================================
 
+export async function getConsultations(): Promise<Consultation[]> {
+  return offlineDb.consultations.reverse().sortBy('createdAt');
+}
+
 export async function getConsultationsByPatient(patientId: string): Promise<Consultation[]> {
   return offlineDb.consultations.where('patientId').equals(patientId).reverse().sortBy('createdAt');
 }

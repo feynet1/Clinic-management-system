@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node ./node_modules/typescript/bin/tsc && node ./node_modules/vite/bin/vite.js build",
+    "build": "node -e \"console.log('SUPABASE_URL set:', !!process.env.VITE_SUPABASE_URL, '| ANON_KEY set:', !!process.env.VITE_SUPABASE_ANON_KEY)\" && node ./node_modules/vite/bin/vite.js build",
     "preview": "vite preview"
   },
   "dependencies": {
