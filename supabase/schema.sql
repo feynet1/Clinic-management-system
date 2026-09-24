@@ -1,7 +1,4 @@
--- =============================================================================
--- Clinic Management System (PWA) - Supabase PostgreSQL Schema
--- Supports Outpatient Clinics in Ethiopia with Offline-First Capability & Realtime
--- =============================================================================
+
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
